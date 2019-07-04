@@ -207,30 +207,30 @@ var kriging = function () {
 	/**
 	 * points [point]	point {x: , y: , value:}
 	 */
-	kriging.trainZ = function (points, model, sigma2, alpha) {
-		var newPoints = []
-		points.forEach(m => { m.xy = Number(m.x + '.' + m.y) })
-		points = points.sort((a, b) => {
-			return a.xy - b.xy
-		})
-		newPoints.push({ x: points[0].x, y: points[0].y, value: points[0].value, xy: points[0].xy })
-		for (var i = 1; i < points.length; i++) {
-			var point = points[i]
-			if (point.xy != result[result.length - 1].xy)
-				result.push({ x: point.x, y: point.y, value: point.value, xy: point.xy })
-		}
-		if (newPoints.length < points.length) console.warn('kriging', '样本存在重复点(' + points.length - newPoints.length + '个点), 已自动清除, 如果有必要, 请调用插值前自行去重')
+    kriging.trainZ = function (points, model, sigma2, alpha) {
+        var nonRepetitivePoints = []
+        points.forEach(m => { m.xy = Number(m.x + '.' + m.y) })
+        points = points.sort((a, b) => {
+            return a.xy - b.xy
+        })
+        nonRepetitivePoints.push({ x: points[0].x, y: points[0].y, value: points[0].value, xy: points[0].xy })
+        for (var i = 1; i < points.length; i++) {
+            var point = points[i]
+            if (point.xy != nonRepetitivePoints[nonRepetitivePoints.length - 1].xy)
+                nonRepetitivePoints.push({ x: point.x, y: point.y, value: point.value, xy: point.xy })
+        }
+        if (nonRepetitivePoints.length < points.length) console.warn('样本存在重复点(' + (points.length - nonRepetitivePoints.length) + '个点), 已自动清除, 如果有必要, 请调用插值前自行去重')
 
-		var x = []
-		var y = []
-		var t = []
-		newPoints.forEach(m => {
-			x.push(m.x)
-			y.push(m.y)
-			t.push(m.value)
-		})
-		return kriging.train(t, x, y, model, sigma2, alpha)
-	}
+        var x = []
+        var y = []
+        var t = []
+        nonRepetitivePoints.forEach(m => {
+            x.push(m.x)
+            y.push(m.y)
+            t.push(m.value)
+        })
+        return kriging.train(t, x, y, model, sigma2, alpha)
+    }
 
 	// Train using gaussian processes with bayesian priors
 	kriging.train = function (t, x, y, model, sigma2, alpha) {
